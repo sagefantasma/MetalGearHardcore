@@ -2,16 +2,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace MetalGearHardcore
 {
     public class MGS2Hardcore
     {
         Process mgs2Process;
-        private static int CurrentHealth;
+        private const int CurrentStagePtr = 0x00948340;
+        private const int CurrentStageOffset = 0x2C;
+        private const int CurrentCharacterPtr = 0x00948340;
+        private const int CurrentCharacterOffset = 0x1C;
+        private static int SnakeHealth = 200;
+        private static int RaidenHealth = 200;
         private const int CurrentHealthPtr = 0x017DE780;
         private const int CurrentHealthOffset = 0x8D2;
         private const int CurrentAmmoPtr = 0x0153FC10;
@@ -29,17 +37,46 @@ namespace MetalGearHardcore
         private const int WeaponPauseLength = 6;
         private const int ReloadMagLocation = 0x551082;
         private const int ReloadMagLength = 7;
+        private const int WeaponSwitchReload1Location = 0x4B04C8;
+        private const int WeaponSwitchReload1Length = 6;
+        private const int WeaponSwitchReload2Location = 0x53B17C;
+        private const int WeaponSwitchReload2Length = 6;
         private readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0xC3, 0x78, 0x19, 0x01 };
         private bool ReloadDisabled = false;
+        private readonly List<int> WeaponsWithMags = new List<int> { 1, 2, 3, 4, 5, 15, 18, 19 };
+        private Dictionary<int, int> WeaponsWithMagsDict = new Dictionary<int, int>();
+        private const string CompatibleGameVersion = "2.0.0.0";
 
         public MGS2Hardcore()
         {
-            mgs2Process = GetProcess();
-            //PermanentDamage();
-            //DisableContinues();
-            //ExtendGuardStatuses();
-            DisablePauses();
-            DisableQuickReload();
+            GameOptions gameOptions = IniHandler.ParseIniFile();
+
+            string filePath = "C:/Program Files (x86)/Steam/steamapps/common/MGS2/METAL GEAR SOLID2.exe"; //TODO: obviously remove this hardcode
+            //string filePath = Path.GetFullPath(gameOptions.GameLocation);
+            //TODO: make the auto-launcher work correctly
+            /*Process.Start(gameOptions.GameLocation);*/
+            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePath);
+            if(versionInfo.ProductVersion != CompatibleGameVersion)
+            {
+                MessageBox.Show("MGS2 Hardcore is only compatible with the Master Collection MGS2, version 2.0.0.0 on Steam");
+                return;
+            }
+            while (mgs2Process == null)
+            {
+                mgs2Process = GetProcess();
+            }
+            if(gameOptions.BleedingKills)
+                BleedingKills();
+            if (gameOptions.PermanentDamage)
+                PermanentDamage();
+            if (gameOptions.DisableContinues)
+                DisableContinues();
+            if (gameOptions.ExtendGuardStatuses)
+                ExtendGuardStatuses();
+            if (gameOptions.DisablePausing)
+                DisablePauses();
+            if (gameOptions.DisableQuickReload)
+                DisableQuickReload();
             while (true)
             {
 
@@ -49,6 +86,34 @@ namespace MetalGearHardcore
         private Process GetProcess()
         {
             return Process.GetProcessesByName("METAL GEAR SOLID2").FirstOrDefault();
+        }
+
+        private SupportedCharacter GetCurrentChara()
+        {
+            lock (mgs2Process)
+            {
+                using(SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
+                {
+                    IntPtr characterLocation = IntPtr.Add(spp.FollowPointer(new IntPtr(CurrentCharacterPtr), false), CurrentCharacterOffset);
+                    byte[] characterBytes = spp.GetMemoryFromPointer(characterLocation, 10);
+
+                    string character = Encoding.UTF8.GetString(characterBytes).Trim();
+                    
+
+                    if (character.Contains("r_tnk"))
+                    {
+                        return SupportedCharacter.Snake;
+                    }
+                    if (character.Contains("r_plt"))
+                    {
+                        return SupportedCharacter.Raiden;
+                    }
+                    else
+                    {
+                        throw new NotImplementedException("The current character is not supported by the MGS Hardcore mod.");
+                    }
+                }
+            }
         }
 
         private byte[] NopArray(int num)
@@ -61,18 +126,32 @@ namespace MetalGearHardcore
             return array;
         }
 
+        #region Bleeding Kills(INCOMPLETE)
+        private void BleedingKills()
+        {
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch
+            {
+
+            }
+        }
+        #endregion
+
         #region Permanent Damage(NEEDS VERIFICATION)
         private void PermanentDamage()
         {
             //TODO: needs verification
-            //set max rations to 0
-            int rationOffset = 146;
+            int maxRationOffset = 242;
+            //this part _might_ need to be in a loop, not sure.
             lock (mgs2Process)
             {
                 using (SimpleProcessProxy proxy = new SimpleProcessProxy(mgs2Process))
                 {
                     IntPtr ammoOffset = proxy.FollowPointer(new IntPtr(CurrentAmmoPtr + CurrentAmmoOffset), false);
-                    proxy.SetMemoryAtPointer(IntPtr.Add(ammoOffset, rationOffset), BitConverter.GetBytes(0));
+                    proxy.SetMemoryAtPointer(IntPtr.Add(ammoOffset, maxRationOffset), BitConverter.GetBytes(0));
                 }
             }
 
@@ -82,23 +161,51 @@ namespace MetalGearHardcore
 
         private void MonitorCurrentHealth()
         {
-            //TODO: needs verification
-            lock (mgs2Process)
+            //TODO: works great, but we need separate checks for raiden & snake... it doesnt make sense to do tanker-plant
+            //and have Raiden start with less health because Snake took damage on the tanker...
+            while (true)
             {
-                using (SimpleProcessProxy proxy = new SimpleProcessProxy(mgs2Process))
+                try
                 {
-                    IntPtr healthLocation = proxy.FollowPointer(new IntPtr(CurrentHealthPtr), false);
-                    byte[] currentHealth = proxy.GetMemoryFromPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), 2);
-                    short currentHealthInt = BitConverter.ToInt16(currentHealth, 0);
-                    if (currentHealthInt <= CurrentHealth)
+                    SupportedCharacter currentCharacter = GetCurrentChara();
+                    lock (mgs2Process)
                     {
-                        CurrentHealth = currentHealthInt;
+                        using (SimpleProcessProxy proxy = new SimpleProcessProxy(mgs2Process))
+                        {
+                            IntPtr healthLocation = proxy.FollowPointer(new IntPtr(CurrentHealthPtr), false);
+                            byte[] currentHealth = proxy.GetMemoryFromPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), 2);
+                            short currentHealthInt = BitConverter.ToInt16(currentHealth, 0);
+                            if (currentCharacter == SupportedCharacter.Snake)
+                            {
+                                if (currentHealthInt <= SnakeHealth)
+                                {
+                                    SnakeHealth = currentHealthInt;
+                                }
+                                else
+                                {
+                                    //if HP goes up, reset back down to last known value
+                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(SnakeHealth));
+                                }
+                            }
+                            else
+                            {
+                                if (currentHealthInt <= RaidenHealth)
+                                {
+                                    RaidenHealth = currentHealthInt;
+                                }
+                                else
+                                {
+                                    //if HP goes up, reset back down to last known value
+                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(RaidenHealth));
+                                }
+                            }
+                        }
                     }
-                    else
-                    {
-                        //if HP goes up, reset back down to last known value
-                        proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(CurrentHealth));
-                    }
+                    Thread.Sleep(50);
+                }
+                catch(Exception e)
+                {
+                    int a = 2 + 2;
                 }
             }
             
@@ -110,6 +217,14 @@ namespace MetalGearHardcore
         {
             //needs additional research
             //can we just make it so the continue button doesnt appear?
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch
+            {
+
+            }
         }
 
         #endregion
@@ -121,6 +236,14 @@ namespace MetalGearHardcore
             //need to extend Alert
             //need to extend Evasion
             //need to extend Caution
+            try
+            {
+                throw new NotImplementedException();
+            }
+            catch
+            {
+                
+            }
         }
         #endregion
 
@@ -141,64 +264,101 @@ namespace MetalGearHardcore
         }
         #endregion
 
-        #region Disable Quick Reload
+        #region Disable Quick Reload(BUGGY)
         private void DisableQuickReload()
         {
+            lock (mgs2Process)
+            {
+                using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
+                {
+                    spp.ModifyProcessOffset(new IntPtr(WeaponSwitchReload1Location), NopArray(WeaponSwitchReload1Length), true);
+                    spp.ModifyProcessOffset(new IntPtr(WeaponSwitchReload2Location), NopArray(WeaponSwitchReload2Length), true);
+                }
+            }
             Task.Factory.StartNew(MonitorMagazines);
         }
 
         private void MonitorMagazines()
         {
+            //TODO: this is kinda jank, but it is working (seemingly) consistently in all cases except when you
+            //load into a new area with an empty gun - no matter what i do it is just auto-reloading the damn thing.
+            short lastEquippedWeapon = 0;
+            byte[] lastStage = new byte[4];
             while (true)
             {
-                lock (mgs2Process)
+                /*
+                 * If you have no weapon equipped, your current mag will represent the last known mag size of the last equipped weapon
+                 * If you have a weapon with mag size equipped, your current mag will represent the actual current mag size
+                 * If you have a weapon with NO mag size equipped, your current mag will always be 0.
+                 */
+                try
                 {
-                    using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
+                    lock (mgs2Process)
                     {
-                        IntPtr currentWeaponLocation = spp.FollowPointer(new IntPtr(CurrentWeaponPtr), false);
-                        currentWeaponLocation = IntPtr.Add(currentWeaponLocation, CurrentWeaponOffset);
-                        byte[] equippedWeapon = spp.GetMemoryFromPointer(currentWeaponLocation, 2);
-                        short equippedWeaponInt = BitConverter.ToInt16(equippedWeapon, 0);
-                        if (equippedWeaponInt == 0)
+                        using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
                         {
-                            //disable reloading while having no weapon equipped to avoid being able to "reverse" quick reload
-                            if (!ReloadDisabled)
+                            IntPtr currentStageLocation = spp.FollowPointer(new IntPtr(CurrentStagePtr), false);
+                            currentStageLocation = IntPtr.Add(currentStageLocation, CurrentStageOffset);
+                            byte[] currentStage = spp.GetMemoryFromPointer(currentStageLocation, 4);
+                            if(!lastStage.SequenceEqual(currentStage))
                             {
                                 spp.ModifyProcessOffset(new IntPtr(ReloadMagLocation), NopArray(ReloadMagLength), true);
                                 ReloadDisabled = true;
-                                Thread.Sleep(250); //this small sleep is set to prevent spamming from working to "reverse" quick reload
+                                lastStage = currentStage;
+                                Thread.Sleep(200);
                                 continue;
                             }
-                        }
-                        
-                        byte[] bulletsInMag = spp.ReadProcessOffset(new IntPtr(CurrentMagazineHardcode), 2);
-                        short bulletsInMagInt = BitConverter.ToInt16(bulletsInMag, 0);
-
-                        if(equippedWeaponInt != 0)
-                        {
-                            if (bulletsInMagInt == 0)
+                            IntPtr currentWeaponLocation = spp.FollowPointer(new IntPtr(CurrentWeaponPtr), false);
+                            currentWeaponLocation = IntPtr.Add(currentWeaponLocation, CurrentWeaponOffset);
+                            byte[] equippedWeapon = spp.GetMemoryFromPointer(currentWeaponLocation, 2);
+                            short equippedWeaponInt = BitConverter.ToInt16(equippedWeapon, 0);
+                            if (!WeaponsWithMags.Contains(equippedWeaponInt))
                             {
-                                //enable reloading
-                                if (ReloadDisabled)
+                                spp.ModifyProcessOffset(new IntPtr(ReloadMagLocation), NopArray(ReloadMagLength), true);
+                                ReloadDisabled = true;
+                                lastEquippedWeapon = equippedWeaponInt;
+                                continue;
+                            }
+
+                            if(lastEquippedWeapon != equippedWeaponInt) 
+                            {
+                                if (WeaponsWithMagsDict.ContainsKey(equippedWeaponInt))
                                 {
-                                    spp.ModifyProcessOffset(new IntPtr(ReloadMagLocation), ReloadMagBytes, true);
-                                    ReloadDisabled = false;
+                                    spp.ModifyProcessOffset(new IntPtr(CurrentMagazineHardcode), WeaponsWithMagsDict[equippedWeaponInt], true);
+                                    lastEquippedWeapon = equippedWeaponInt;
+                                    Thread.Sleep(150);
+                                    continue;
+                                }
+                            }
+
+                            spp.ModifyProcessOffset(new IntPtr(ReloadMagLocation), ReloadMagBytes, true);
+                            ReloadDisabled = false;
+
+                            byte[] bulletsInMag = spp.ReadProcessOffset(new IntPtr(CurrentMagazineHardcode), 2);
+                            short bulletsInMagInt = BitConverter.ToInt16(bulletsInMag, 0);
+                            if (WeaponsWithMagsDict.ContainsKey(equippedWeaponInt))
+                            {
+                                if((bulletsInMagInt > WeaponsWithMagsDict[equippedWeaponInt] && WeaponsWithMagsDict[equippedWeaponInt] == 0)||
+                                    bulletsInMagInt < WeaponsWithMagsDict[equippedWeaponInt])
+                                    WeaponsWithMagsDict[equippedWeaponInt] = bulletsInMagInt;
+                                else
+                                {
+                                    spp.ModifyProcessOffset(new IntPtr(CurrentMagazineHardcode), WeaponsWithMagsDict[equippedWeaponInt], true);
                                 }
                             }
                             else
                             {
-                                //disable reloading
-                                if (!ReloadDisabled)
-                                {
-                                    spp.ModifyProcessOffset(new IntPtr(ReloadMagLocation), NopArray(ReloadMagLength), true);
-                                    ReloadDisabled = true;
-                                }
+                                WeaponsWithMagsDict.Add(equippedWeaponInt, bulletsInMagInt);
                             }
+                            lastEquippedWeapon = equippedWeaponInt;
+                            Thread.Sleep(50);
                         }
-                        
                     }
                 }
-                Thread.Sleep(50);
+                finally
+                {
+                    
+                }
             }
         }
         #endregion
