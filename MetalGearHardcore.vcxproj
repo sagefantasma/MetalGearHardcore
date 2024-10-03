@@ -24,6 +24,7 @@
     <ProjectGuid>{cfbe6de8-8d04-4c26-b62c-02e4fb043220}</ProjectGuid>
     <RootNamespace>MetalGearHardcore</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>MetalGearHardcoreCpp</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
