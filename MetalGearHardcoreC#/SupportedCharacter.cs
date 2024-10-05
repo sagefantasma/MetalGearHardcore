@@ -9,6 +9,8 @@ namespace MetalGearHardcore
     internal enum SupportedCharacter
     {
         Snake,
-        Raiden
+        Raiden,
+        Title,
+        Unknown
     }
 }
