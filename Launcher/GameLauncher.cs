@@ -15,7 +15,7 @@ namespace Launcher
 
         private void DelayGameStart()
         {
-            Thread.Sleep(10000);
+            Thread.Sleep(3000);
             Invoke(new MethodInvoker(Hide));
             MGS2Hardcore.Main_Thread();
             Invoke(new MethodInvoker(Close));
