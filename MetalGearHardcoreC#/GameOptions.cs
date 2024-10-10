@@ -9,6 +9,7 @@ namespace MetalGearHardcore
 {
     public class GameOptions
     {
+        public bool ModEnabled;
         public bool BleedingKills;
         public bool Permadeath;
         public bool DisablePausing;
@@ -18,6 +19,7 @@ namespace MetalGearHardcore
 
         public GameOptions(IniData iniData)
         {
+            ModEnabled = bool.Parse(iniData.GetKey("DeactivateHardcoreMod"));
             BleedingKills = bool.Parse(iniData.GetKey("BleedingKills"));
             Permadeath = bool.Parse(iniData.GetKey("Permadeath"));
             DisablePausing = bool.Parse(iniData.GetKey("DisablePausing"));

@@ -20,7 +20,7 @@ namespace MetalGearHardcore
         {
             IniDataParser iniParser = new IniDataParser();
 
-            IniData parsedData = iniParser.Parse(File.ReadAllText("test.ini"));
+            IniData parsedData = iniParser.Parse(File.ReadAllText("MGS2HardcoreConfig.ini"));
 
             return new GameOptions(parsedData);
         }
