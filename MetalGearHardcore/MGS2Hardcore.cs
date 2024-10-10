@@ -8,13 +8,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using RGiesecke.DllExport;
 
 namespace MetalGearHardcore
 {
-    public class MGS2Hardcore
+    public static class MGS2Hardcore
     {
         #region Internals
         static Process mgs2Process;
@@ -59,7 +56,8 @@ namespace MetalGearHardcore
         private static readonly IntPtr MaxCautionTimer = new IntPtr(0x17B2CC0);
         private const int MaxCautionTimerOffset = 0xD24;
         private const int GameTimerOffset = 0x10;
-        private int CurrentGameTime;
+        private static int CurrentGameTime;
+        private static CancellationTokenSource tokenSource = new CancellationTokenSource();
         /*
         private const int SetAlertTimerLocation = 0x199D10; //B9 00040000 -- mov ecx, 00000400
         private const int SetEvasionTimerLocation = 0x136C1F; //B9 B0040000 -- mov ecx, 000004B0
@@ -140,40 +138,9 @@ namespace MetalGearHardcore
             }
             return array;
         }
-        #endregion
 
-        /*[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-        public sealed class ModuleInitializerAttribute : Attribute { }
-
-        [ModuleInitializer]*/
-
-        //[DllExport("DllMain", CallingConvention.StdCall)]
-        [UnmanagedCallersOnly(EntryPoint = "DllMain", CallConvs = new[] {typeof(CallConvStdcall)})]
-        internal static void Main(int hModule, int ul_reason_for_call, IntPtr lpReserved)
+        private static string GetGameFilePath(string path)
         {
-            switch (ul_reason_for_call)
-            {
-                case DLL_PROCESS_ATTACH:
-                    Thread thread = new Thread(new ThreadStart(Main_Thread));
-                    thread.Start();
-                    thread.Join();
-                    break;
-                case DLL_PROCESS_DETACH:
-                case DLL_THREAD_ATTACH:
-                case DLL_THREAD_DETACH:
-                    break;
-            }
-            
-        }
-
-        private static void Main_Thread()
-        {
-            //so i like the idea of having this just be an injectable dll/asi/whatever. But I can't quite find a way to make it work...
-            GameOptions gameOptions = IniHandler.ParseIniFile();
-            if (!gameOptions.ModEnabled)
-            {
-                return;
-            }
             List<string> filesInDirectory = Directory.GetFiles(Environment.CurrentDirectory).ToList();
             CancellationTokenSource tokenSource = new CancellationTokenSource();
 
@@ -182,15 +149,31 @@ namespace MetalGearHardcore
             {
                 MessageBox.Show("MGS2 Hardcore must be located in the same directory as the game. Please move MGS2 Hardcore and it's files to " +
                     "the same directory as 'METAL GEAR SOLID2.exe'");
-                return;
+                return null;
             }
-            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(filePath);
+            return filePath;
+        }
+        #endregion
+
+        public static void Main_Thread()
+        {
+            GameOptions gameOptions = IniHandler.ParseIniFile();
+            
+            string gameLocation = gameOptions.GameLocation;
+            FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(gameLocation);
             if (versionInfo.ProductVersion != CompatibleGameVersion)
             {
                 MessageBox.Show("MGS2 Hardcore is only compatible with the Master Collection MGS2, version 2.0.0.0 on Steam");
                 return;
             }
-            Process.Start(filePath);
+            FileInfo fileInfo = new FileInfo(gameLocation);            
+            ProcessStartInfo mgs2StartInfo = new ProcessStartInfo(gameLocation)
+            {
+                WorkingDirectory = fileInfo.DirectoryName,
+                UseShellExecute = false,
+                CreateNoWindow = false,
+            };
+            Process.Start(mgs2StartInfo);
             while (mgs2Process == null)
             {
                 mgs2Process = GetProcess();
@@ -229,12 +212,7 @@ namespace MetalGearHardcore
             tokenSource.Cancel();
         }
 
-        /*static MGS2Hardcore()
-        {
-            Main();
-        }*/
-
-        private void MonitorGameTimer()
+        private static void MonitorGameTimer()
         {
             while (true)
             {
