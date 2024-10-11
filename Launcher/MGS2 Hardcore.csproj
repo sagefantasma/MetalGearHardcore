@@ -8,11 +8,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageId>$(AssemblyName)</PackageId>
     <StartupObject>Launcher.Program</StartupObject>
-    <ApplicationIcon>mgs2hardcore_bg.png</ApplicationIcon>
+    <ApplicationIcon>mgs2hardcore_bg.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="mgs2hardcore_bg.png" />
+    <Content Include="mgs2hardcore_bg.ico" />
   </ItemGroup>
 
   <ItemGroup>
