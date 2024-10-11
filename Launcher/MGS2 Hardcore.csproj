@@ -9,6 +9,7 @@
     <PackageId>$(AssemblyName)</PackageId>
     <StartupObject>Launcher.Program</StartupObject>
     <ApplicationIcon>mgs2hardcore_bg.ico</ApplicationIcon>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
 
   <ItemGroup>

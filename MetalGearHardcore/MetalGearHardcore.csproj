@@ -78,7 +78,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Content Include="MGS2HardcoreConfig.ini">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -19,17 +19,17 @@ namespace MetalGearHardcore
 
         public GameOptions(IniData iniData)
         {
-            GameLocation = iniData.GetKey("GameLocation");
+            GameLocation = iniData["Global"].GetKeyData("GameLocation").Value;
             if (GameLocation.Contains("\""))
             {
                 GameLocation = GameLocation.Replace("\"", "");
             }
-            BleedingKills = bool.Parse(iniData.GetKey("BleedingKills"));
-            Permadeath = bool.Parse(iniData.GetKey("Permadeath"));
-            DisablePausing = bool.Parse(iniData.GetKey("DisablePausing"));
-            DisableQuickReload = bool.Parse(iniData.GetKey("DisableQuickReload"));
-            ExtendGuardStatuses = bool.Parse(iniData.GetKey("ExtendGuardStatuses"));
-            PermanentDamage = bool.Parse(iniData.GetKey("PermanentDamage"));
+            BleedingKills = bool.Parse(iniData["Global"].GetKeyData("BleedingKills").Value);
+            Permadeath = bool.Parse(iniData["Global"].GetKeyData("Permadeath").Value);
+            DisablePausing = bool.Parse(iniData["Global"].GetKeyData("DisablePausing").Value);
+            DisableQuickReload = bool.Parse(iniData["Global"].GetKeyData("DisableQuickReload").Value);
+            ExtendGuardStatuses = bool.Parse(iniData["Global"].GetKeyData("ExtendGuardStatuses").Value);
+            PermanentDamage = bool.Parse(iniData["Global"].GetKeyData("PermanentDamage").Value);
         }
     }
 }
