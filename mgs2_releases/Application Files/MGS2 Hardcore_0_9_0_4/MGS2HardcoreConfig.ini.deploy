@@ -1,0 +1,30 @@
+﻿; The absolute path to your Steam installation of METAL GEAR SOLID2.exe
+; To update your Game Location:
+; 1. Open your Steam Library
+; 2. Right click on your copy of METAL GEAR SOLID 2: Sons of Liberty - Master Collection Version
+; 3. Select 'Properties...'
+; 4. Select 'Installed Files'
+; 5. Click on the 'Browse' button
+; 6. Select 'METAL GEAR SOLID2.exe' in the list of files of the File Explorer window
+; 7. Click on 'Copy path' in the 'Home' menu of the File Explorer window
+; 8. Paste the copied path after 'Game Location = ' directly below, making sure to delete the old path.
+GameLocation = "C:\Program Files (x86)\Steam\steamapps\common\MGS2\METAL GEAR SOLID2.exe"
+
+; Feel free to toggle any of the options below on(true) or off(false) to customize your hardcore experience to your liking.
+; If you get down to 1hp while bleeding, you will bleed out and die.
+BleedingKills = true
+
+; When your life reaches zero, the game is over. There are no continues, my friend.
+Permadeath = false
+
+; Disables the pause button, and the pausing that happens when you open the Item or Weapon menus. For game stability reasons, Codec pause still works.
+DisablePausing = true
+
+; No more weapon switching to reload, you must manually reload.
+DisableQuickReload = true
+
+; When you've been found by guards, this will extend the amount of time they're in Alert, Evasion, and Caution modes.
+ExtendGuardStatuses = true
+
+; Rations are a waste of good food. Defeating bosses will not replenish your health. Crouch/prone will not heal at low hp.
+PermanentDamage = true
