@@ -1,17 +1,17 @@
 using MetalGearHardcore;
+using System.Diagnostics;
 
-namespace Launcher
+namespace MGS3Hardcore
 {
-    public partial class GameLauncher : Form
+    public partial class MGS3Launcher : Form
     {
-        GameOptions currentGameOptions;
+        MGS3GameOptions currentGameOptions;
 
 
-        public GameLauncher()
+        public MGS3Launcher()
         {
             InitializeComponent();
-            //Task.Run(DelayGameStart);
-            currentGameOptions = IniHandler.ParseIniFile();
+            currentGameOptions = MGS3IniHandler.ParseIniFile();
             SetupUIElements();
         }
 
@@ -33,9 +33,9 @@ namespace Launcher
 
         private void UpdateCurrentGameOptions(Button button, bool enable)
         {
-            if (button.Text.ToLower().Contains("bleeding"))
+            if (button.Text.ToLower().Contains("double"))
             {
-                currentGameOptions.BleedingKills = enable;
+                currentGameOptions.DoubleDamage = enable;
             }
             else if (button.Text.ToLower().Contains("death"))
             {
@@ -44,6 +44,7 @@ namespace Launcher
             else if (button.Text.ToLower().Contains("pausing"))
             {
                 currentGameOptions.DisablePausing = enable;
+                //TODO: show warning if enabling, clear it if disabling
             }
             else if (button.Text.ToLower().Contains("reload"))
             {
@@ -77,13 +78,13 @@ namespace Launcher
             {
                 launchGameBtn.Enabled = false;
             }
-            if (currentGameOptions.BleedingKills)
+            if (currentGameOptions.DoubleDamage)
             {
-                SetOption(bleedingKillsBtn, true);
+                SetOption(doubleDamageBtn, true);
             }
             else
             {
-                SetOption(bleedingKillsBtn, false);
+                SetOption(doubleDamageBtn, false);
             }
             if (currentGameOptions.DisablePausing)
             {
@@ -130,8 +131,8 @@ namespace Launcher
         private void StartGame()
         {
             Invoke(new MethodInvoker(Hide));
-            IniHandler.UpdateIniFile(currentGameOptions);
-            MGS2Hardcore.Main_Thread();
+            MGS3IniHandler.UpdateIniFile(currentGameOptions);
+            MetalGearHardcore.MGS3Hardcore.Main_Thread();
             Invoke(new MethodInvoker(Close));
         }
 
@@ -150,7 +151,7 @@ namespace Launcher
             OpenFileDialog dlg = new OpenFileDialog();
             dlg.InitialDirectory = currentGameOptions.GameLocation;
             dlg.Multiselect = false;
-            dlg.Title = "Please find and select 'METAL GEAR SOLID2.exe'";
+            dlg.Title = "Please find and select 'METAL GEAR SOLID3.exe'";
             if (dlg.ShowDialog() == DialogResult.OK)
             {
                 currentGameOptions.GameLocation = dlg.FileName;
@@ -166,10 +167,10 @@ namespace Launcher
             StartGame();
         }
 
-        private void bleedingKillsBtn_MouseHover(object sender, EventArgs e)
+        private void doubleDamageBtn_MouseHover(object sender, EventArgs e)
         {
             ToolTip toolTip = new ToolTip();
-            toolTip.Show("If you get down to 1 HP while bleeding, you will bleed out and die.", sender as IWin32Window);
+            toolTip.Show("Every bit of damage you take hits twice as hard.", sender as IWin32Window);
         }
 
         private void permadeathBtn_MouseHover(object sender, EventArgs e)
@@ -180,8 +181,8 @@ namespace Launcher
 
         private void pausingBtn_MouseHover(object sender, EventArgs e)
         {
-            ToolTip toolTip = new ToolTip();
-            toolTip.Show("Disables the pause button, and the pausing that happens when you open the Item or Weapon menus. For game stability reasons, Codec pause still works.", sender as IWin32Window);
+            using (ToolTip toolTip = new ToolTip())
+                toolTip.Show("Disables the pausing that happens when you open the Item or Weapon menus. For game stability reasons, Codec pause still works.", sender as IWin32Window);
         }
 
         private void quickReloadBtn_MouseHover(object sender, EventArgs e)
@@ -199,7 +200,18 @@ namespace Launcher
         private void permanentDamageBtn_MouseHover(object sender, EventArgs e)
         {
             ToolTip toolTip = new ToolTip();
-            toolTip.Show("Rations are a waste of good food. Defeating bosses will not replenish your health. Crouch/prone will not heal at low HP.", sender as IWin32Window);
+            toolTip.Show("You're a tough one my friend, a lesser man would be dead by now.", sender as IWin32Window);
+        }
+
+        private void donationBtn_MouseHover(object sender, EventArgs e)
+        {
+            ToolTip toolTip = new ToolTip();
+            toolTip.Show("Like METAL GEAR HARDCORE? Consider donating to my Ko-fi to fund this and future projects!", sender as IWin32Window);
+        }
+
+        private void donationBtn_Click(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://ko-fi.com/sagefantasma") { UseShellExecute = true});
         }
     }
 }

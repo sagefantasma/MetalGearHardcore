@@ -1,7 +1,4 @@
-using MetalGearHardcore;
-using Microsoft.VisualBasic;
-
-namespace Launcher
+namespace MGS3Hardcore
 {
     internal static class Program
     {
@@ -14,7 +11,7 @@ namespace Launcher
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
-            Application.Run(new MGS2Launcher());            
+            Application.Run(new MGS3Launcher());
         }
     }
 }

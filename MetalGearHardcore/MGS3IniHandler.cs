@@ -10,26 +10,26 @@ using IniParser;
 
 namespace MetalGearHardcore
 {
-    public static class IniHandler
+    public static class MGS3IniHandler
     {
         public static string IniFile = "MGS2HardcoreConfig.ini";
 
-        public static GameOptions ParseIniFile()
+        public static MGS3GameOptions ParseIniFile()
         {
             FileIniDataParser iniParser = new FileIniDataParser();
 
             IniData parsedData = iniParser.ReadFile(IniFile);
 
-            return new GameOptions(parsedData);
+            return new MGS3GameOptions(parsedData);
         }
 
-        public static void UpdateIniFile(GameOptions gameOptions)
+        public static void UpdateIniFile(MGS3GameOptions gameOptions)
         {
             FileIniDataParser iniParser = new FileIniDataParser();
 
             IniData iniData = iniParser.ReadFile(IniFile);
             iniData["Global"]["GameLocation"] = gameOptions.GameLocation;
-            iniData["Global"]["BleedingKills"] = gameOptions.BleedingKills.ToString();
+            iniData["Global"]["DoubleDamage"] = gameOptions.DoubleDamage.ToString();
             iniData["Global"]["Permadeath"] = gameOptions.Permadeath.ToString();
             iniData["Global"]["DisablePausing"] = gameOptions.DisablePausing.ToString();
             iniData["Global"]["DisableQuickReload"] = gameOptions.DisableQuickReload.ToString();

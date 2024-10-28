@@ -157,7 +157,7 @@ namespace MetalGearHardcore
 
         public static void Main_Thread()
         {
-            GameOptions gameOptions = IniHandler.ParseIniFile();
+            MGS2GameOptions gameOptions = MGS2IniHandler.ParseIniFile();
             
             string gameLocation = gameOptions.GameLocation;
             FileVersionInfo versionInfo = FileVersionInfo.GetVersionInfo(gameLocation);
@@ -360,6 +360,7 @@ namespace MetalGearHardcore
         #region Disable Permadeath
         private static void DisablePermadeath()
         {
+            //TODO: take this out of the Permadamage loop - this means if permadamage is off, this doesnt work. silly oversight.
             //Maybe we make this dependent on continue count, instead? hmmj
             Console.WriteLine("Disabling permadeath");
             Permadeath = false;
@@ -377,6 +378,7 @@ namespace MetalGearHardcore
 
         private static void ForceAlertTimer()
         {
+            bool recentlyForced = false;
             while (true)
             {
                 try
@@ -387,8 +389,19 @@ namespace MetalGearHardcore
                         {
                             IntPtr alertTimer = IntPtr.Add(spp.FollowPointer(MaxAlertTimer, false), MaxAlertTimerOffset);
                             short currentAlertTimer = BitConverter.ToInt16(spp.GetMemoryFromPointer(alertTimer, 2), 0);
-                            if (currentAlertTimer == 1024)
+                            if (currentAlertTimer == 0)
+                            {
+                                continue;
+                            }
+                            if (900 < currentAlertTimer && currentAlertTimer < 1024 && !recentlyForced)
+                            {
                                 spp.SetMemoryAtPointer(alertTimer, BitConverter.GetBytes(3072));
+                                recentlyForced = true;
+                            }
+                            else if(currentAlertTimer < 900)
+                            {
+                                recentlyForced = false;
+                            }
                         }
                     }
                 }
@@ -402,6 +415,7 @@ namespace MetalGearHardcore
 
         private static void ForceEvasionTimer()
         {
+            bool recentlyForced = false;
             while (true)
             {
                 try
@@ -411,15 +425,23 @@ namespace MetalGearHardcore
                         using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
                         {
                             IntPtr evasionTimer = spp.FollowPointer(MaxEvasionTimerPtr1, false);
-                            evasionTimer = spp.FollowPointer(IntPtr.Add(evasionTimer, MaxEvasionTimerPtr2), false);
+                            evasionTimer = new IntPtr(BitConverter.ToInt64(spp.GetMemoryFromPointer(IntPtr.Add(evasionTimer, MaxEvasionTimerPtr2), 8), 0));
                             evasionTimer = IntPtr.Add(evasionTimer, MaxEvasionTimerOffset);
-                            /*evasionTimer = new IntPtr(evasionTimer.ToInt64() - mgs2Process.MainModule.BaseAddress.ToInt64());
-                            evasionTimer = IntPtr.Add(evasionTimer, MaxEvasionTimerPtr2);
-                            evasionTimer = spp.FollowPointer(evasionTimer, false);*/
 
                             short currentCautionTimer = BitConverter.ToInt16(spp.GetMemoryFromPointer(evasionTimer, 2), 0);
-                            if (currentCautionTimer == 1200)
+                            if(currentCautionTimer == 0)
+                            {
+                                continue;
+                            }
+                            if (1100 < currentCautionTimer && currentCautionTimer < 1200 && !recentlyForced)
+                            {
                                 spp.SetMemoryAtPointer(evasionTimer, BitConverter.GetBytes(3600));
+                                recentlyForced = true;
+                            }
+                            else if (currentCautionTimer < 1100)
+                            {
+                                recentlyForced = false;
+                            }
                         }
                     }
                 }
@@ -433,6 +455,7 @@ namespace MetalGearHardcore
 
         private static void PersistCautionTimer()
         {
+            bool recentlyForced = false;
             while (true)
             {
                 try
@@ -443,8 +466,19 @@ namespace MetalGearHardcore
                         {
                             IntPtr cautionTimer = IntPtr.Add(spp.FollowPointer(MaxCautionTimer, false), MaxCautionTimerOffset);
                             short currentCautionTimer = BitConverter.ToInt16(spp.GetMemoryFromPointer(cautionTimer, 2), 0);
-                            if (currentCautionTimer == 3600)
+                            if(currentCautionTimer == 0)
+                            {
+                                continue;
+                            }
+                            if (3500 < currentCautionTimer && currentCautionTimer < 3600 && !recentlyForced)
+                            {
                                 spp.SetMemoryAtPointer(cautionTimer, BitConverter.GetBytes(10800));
+                                recentlyForced = true;
+                            }
+                            else if(currentCautionTimer < 3500)
+                            {
+                                recentlyForced = false;
+                            }
                         }
                     }
                 }

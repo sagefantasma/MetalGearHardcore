@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MetalGearHardcore", "MetalG
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MGS2 Hardcore", "Launcher\MGS2 Hardcore.csproj", "{AFFBCC40-A96C-491A-A7A4-53E00E10C358}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MGS3Hardcore", "MGS3Hardcore\MGS3Hardcore.csproj", "{93601721-540D-4884-A118-3391E0F1DE1E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{AFFBCC40-A96C-491A-A7A4-53E00E10C358}.Release|x64.Build.0 = Release|Any CPU
 		{AFFBCC40-A96C-491A-A7A4-53E00E10C358}.Release|x86.ActiveCfg = Release|Any CPU
 		{AFFBCC40-A96C-491A-A7A4-53E00E10C358}.Release|x86.Build.0 = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|x64.Build.0 = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Debug|x86.Build.0 = Debug|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|x64.ActiveCfg = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|x64.Build.0 = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|x86.ActiveCfg = Release|Any CPU
+		{93601721-540D-4884-A118-3391E0F1DE1E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

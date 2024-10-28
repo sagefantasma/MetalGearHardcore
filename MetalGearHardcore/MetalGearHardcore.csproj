@@ -69,13 +69,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="GameOptions.cs" />
-    <Compile Include="IniHandler.cs" />
+    <Compile Include="MGS3IniHandler.cs" />
+    <Compile Include="MGS3GameOptions.cs" />
+    <Compile Include="MGS2GameOptions.cs" />
+    <Compile Include="MGS2IniHandler.cs" />
     <Compile Include="MGS2Hardcore.cs" />
+    <Compile Include="MGS3Hardcore.cs" />
+    <Compile Include="MGS3Stage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SupportedCharacter.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MGS3HardcoreConfig.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
     <Content Include="MGS2HardcoreConfig.ini">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

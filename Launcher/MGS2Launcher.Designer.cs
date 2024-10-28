@@ -1,6 +1,6 @@
 ﻿namespace Launcher
 {
-    partial class GameLauncher
+    partial class MGS2Launcher
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(GameLauncher));
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MGS2Launcher));
             bleedingKillsBtn = new Button();
             permadeathBtn = new Button();
             pausingBtn = new Button();
@@ -38,6 +38,7 @@
             quitBtn = new Button();
             launchGameBtn = new Button();
             locateExeBtn = new Button();
+            donationBtn = new Button();
             SuspendLayout();
             // 
             // bleedingKillsBtn
@@ -144,7 +145,19 @@
             locateExeBtn.UseVisualStyleBackColor = true;
             locateExeBtn.Click += locateExeBtn_Click;
             // 
-            // GameLauncher
+            // donationBtn
+            // 
+            donationBtn.BackgroundImage = (Image)resources.GetObject("donationBtn.BackgroundImage");
+            donationBtn.BackgroundImageLayout = ImageLayout.Stretch;
+            donationBtn.Location = new Point(12, 12);
+            donationBtn.Name = "donationBtn";
+            donationBtn.Size = new Size(40, 32);
+            donationBtn.TabIndex = 20;
+            donationBtn.UseVisualStyleBackColor = true;
+            donationBtn.Click += donationBtn_Click;
+            donationBtn.MouseHover += donationBtn_MouseHover;
+            // 
+            // MGS2Launcher
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -152,6 +165,7 @@
             BackgroundImageLayout = ImageLayout.Stretch;
             ClientSize = new Size(800, 450);
             ControlBox = false;
+            Controls.Add(donationBtn);
             Controls.Add(locateExeBtn);
             Controls.Add(launchGameBtn);
             Controls.Add(quitBtn);
@@ -162,7 +176,7 @@
             Controls.Add(permadeathBtn);
             Controls.Add(bleedingKillsBtn);
             FormBorderStyle = FormBorderStyle.FixedDialog;
-            Name = "GameLauncher";
+            Name = "MGS2Launcher";
             ShowIcon = false;
             ShowInTaskbar = false;
             TopMost = true;
@@ -180,5 +194,6 @@
         private Button quitBtn;
         private Button launchGameBtn;
         private Button locateExeBtn;
+        private Button donationBtn;
     }
 }
