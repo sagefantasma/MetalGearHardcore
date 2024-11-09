@@ -23,6 +23,8 @@ namespace MetalGearHardcore
         private const int CurrentHealthOffset = 0x684;
         private static readonly IntPtr MaxHpPtr = new IntPtr(0x00ACBE18);
         private const int MaxHpOffset = 0x686;
+        private static readonly IntPtr CheckpointHealthPtr = new IntPtr(0x00ACBE20);
+        private const int CheckpointHealthOffset = 0x684;
         private static readonly SimplePattern QuickMenuPauseAoB = new SimplePattern("F7 D1 21 0D E4 94 C6 01 C3 CC CC CC CC CC CC CC");
         private static byte[] DisableQuickMenuPauseBytes = new byte[] { 0x85, 0x05, 0x30, 0xF9, 0xA8, 0x01 };
         private static readonly SimplePattern FilterPattern = new SimplePattern("00 00 A0 49 00 00 00 00 FF FF FF 7F");
@@ -227,7 +229,6 @@ namespace MetalGearHardcore
         #region Permanent Damage & Permadeath (NEEDS FINAL CONFIRMATION)
         private static void MonitorPlayerHealth(CancellationToken token)
         {
-            //TODO: we also need to have a check to disable this during the sorrow fight
             Console.WriteLine("Monitoring player health...");
             //monitor current HP
             Task.Factory.StartNew(MonitorCurrentHealth, token);
@@ -256,43 +257,62 @@ namespace MetalGearHardcore
                                 healthLocation = IntPtr.Add(healthLocation, CurrentHealthOffset);
                                 byte[] currentHealth = proxy.GetMemoryFromPointer(healthLocation, 2);
                                 ushort currentHealthInt = BitConverter.ToUInt16(currentHealth, 0);
-                                if (!Permadeath)
+                                IntPtr maxHealthLocation = proxy.FollowPointer(MaxHpPtr, false);
+                                maxHealthLocation = IntPtr.Add(maxHealthLocation, MaxHpOffset);
+                                byte[] currentMaxHp = proxy.GetMemoryFromPointer(maxHealthLocation, 2);
+                                ushort currentMaxHpShort = BitConverter.ToUInt16(currentMaxHp, 0);
+                                IntPtr checkpointHealthLocation = proxy.FollowPointer(CheckpointHealthPtr, false);
+                                checkpointHealthLocation = IntPtr.Add(checkpointHealthLocation, CheckpointHealthOffset);
+                                byte[] checkpointHealthBytes = proxy.GetMemoryFromPointer(checkpointHealthLocation, 2);
+                                ushort checkpointHealth = BitConverter.ToUInt16(checkpointHealthBytes, 0);
+
+                                if (Permadeath)
                                 {
-                                    SnakeHealth = 1000;
-                                }
-                                //if (currentCharacter == SupportedCharacter.Snake)
-                                {
-                                    if (Permadeath)
+                                    if (currentContinuesParsed > LastKnownContinueCount)
                                     {
-                                        if (currentContinuesParsed > LastKnownContinueCount)
+                                        SnakeHealth = 0;
+                                        proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(0));
+                                        continue;
+                                    }
+                                    else
+                                    {
+                                        LastKnownContinueCount = currentContinuesParsed;
+                                    }
+                                }
+                                
+                                if (currentLocation != MGS3Stage.LocationString.v007a
+                                        && currentLocation != MGS3Stage.LocationString.s141a
+                                        && currentLocation != MGS3Stage.LocationString.InvalidStage)
+                                {
+                                    if(SnakeHealth > checkpointHealth)
+                                    {
+                                        SnakeHealth = checkpointHealth;
+                                        continue;
+                                    }
+                                    if (currentHealthInt <= SnakeHealth)
+                                    {
+                                        if (DoubleDamage)
                                         {
-                                            SnakeHealth = 0;
+                                            ushort damageTaken = (ushort)(SnakeHealth - currentHealthInt);
+                                            short healthAfterDoubleDamage = (short) (SnakeHealth - (damageTaken * 2));
+                                            if(healthAfterDoubleDamage > 0)
+                                            {
+                                                SnakeHealth = (ushort) healthAfterDoubleDamage;
+                                            }
+                                            else if(currentHealthInt > 0)
+                                            {
+                                                proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(0));
+                                                SnakeHealth = checkpointHealth;
+                                            }
                                         }
                                         else
                                         {
-                                            LastKnownContinueCount = currentContinuesParsed;
-                                        }
-                                    }
-                                    //TODO: need to check Sorrow fight
-                                    if (currentHealthInt <= SnakeHealth)
-                                    {
-                                        if (currentLocation != MGS3Stage.LocationString.v007a && currentLocation != MGS3Stage.LocationString.s141a)
-                                        {
-                                            if (DoubleDamage && SnakeHealth != 1000)
-                                            {
-                                                ushort damageTaken = (ushort)(SnakeHealth - currentHealthInt);
-                                                SnakeHealth = (ushort)(SnakeHealth - (damageTaken * 2));
-                                            }
-                                            else
-                                            {
-                                                SnakeHealth = currentHealthInt;
-                                            }
+                                            SnakeHealth = currentHealthInt;
                                         }
                                     }
                                     else
                                     {
-                                        //if HP goes up, reset back down to last known value -- sometimes this is getting set as negative values, which is always incorrect
-                                        //TODO: verify this issue was solved with the switch to ushort
+                                        //if HP goes up, reset back down to last known value
                                         if (Permadamage)
                                             proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(SnakeHealth));
                                     }
@@ -307,7 +327,7 @@ namespace MetalGearHardcore
                         if (e is NotImplementedException)
                         {
                             //Console.WriteLine("Player doesn't seem to be playing as story mode Snake, setting health to max");
-                            SnakeHealth = 1000;
+                            //SnakeHealth = 1000;
                         }
                     }
                 }

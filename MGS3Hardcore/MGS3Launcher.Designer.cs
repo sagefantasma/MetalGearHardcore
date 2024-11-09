@@ -39,6 +39,7 @@
             permadeathBtn = new Button();
             doubleDamageBtn = new Button();
             donationBtn = new Button();
+            warningLabel = new Label();
             SuspendLayout();
             // 
             // locateExeBtn
@@ -157,6 +158,17 @@
             donationBtn.Click += donationBtn_Click;
             donationBtn.MouseHover += donationBtn_MouseHover;
             // 
+            // warningLabel
+            // 
+            warningLabel.AutoSize = true;
+            warningLabel.BackColor = Color.OrangeRed;
+            warningLabel.Font = new Font("Segoe UI", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            warningLabel.Location = new Point(501, 436);
+            warningLabel.Name = "warningLabel";
+            warningLabel.Size = new Size(299, 15);
+            warningLabel.TabIndex = 20;
+            warningLabel.Text = "WARNING: Pausing is disabled; this can cause crashes";
+            // 
             // MGS3Launcher
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -175,12 +187,14 @@
             Controls.Add(pausingBtn);
             Controls.Add(permadeathBtn);
             Controls.Add(doubleDamageBtn);
+            Controls.Add(warningLabel);
             FormBorderStyle = FormBorderStyle.FixedDialog;
             Name = "MGS3Launcher";
             ShowIcon = false;
             ShowInTaskbar = false;
             TopMost = true;
             ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
@@ -195,5 +209,6 @@
         private Button permadeathBtn;
         private Button doubleDamageBtn;
         private Button donationBtn;
+        private Label warningLabel;
     }
 }

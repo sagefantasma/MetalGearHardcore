@@ -44,7 +44,7 @@ namespace MGS3Hardcore
             else if (button.Text.ToLower().Contains("pausing"))
             {
                 currentGameOptions.DisablePausing = enable;
-                //TODO: show warning if enabling, clear it if disabling
+                warningLabel.Visible = enable;
             }
             else if (button.Text.ToLower().Contains("reload"))
             {
@@ -182,7 +182,7 @@ namespace MGS3Hardcore
         private void pausingBtn_MouseHover(object sender, EventArgs e)
         {
             using (ToolTip toolTip = new ToolTip())
-                toolTip.Show("Disables the pausing that happens when you open the Item or Weapon menus. For game stability reasons, Codec pause still works.", sender as IWin32Window);
+                toolTip.Show("WARNING: CAN CAUSE FREQUENT CRASHES. Disables the pausing that happens when you open the Item(L2) or Weapon(R2) menus.", sender as IWin32Window);
         }
 
         private void quickReloadBtn_MouseHover(object sender, EventArgs e)
