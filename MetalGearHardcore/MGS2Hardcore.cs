@@ -47,6 +47,7 @@ namespace MetalGearHardcore
         private static readonly List<int> WeaponsWithMags = new List<int> { 1, 2, 3, 4, 5, 15, 18, 19 };
         private static Dictionary<int, int> WeaponsWithMagsDict = new Dictionary<int, int>();
         private static bool Permadeath = true;
+        private static bool Permadamage = true;
         private static bool DeathByBleeding = false;
         private static readonly IntPtr MaxAlertTimer = new IntPtr(0x016C8E10);
         private const int MaxAlertTimerOffset = 0x33C;
@@ -55,6 +56,8 @@ namespace MetalGearHardcore
         private const int MaxEvasionTimerOffset = 0x54;
         private static readonly IntPtr MaxCautionTimer = new IntPtr(0x17B2CC0);
         private const int MaxCautionTimerOffset = 0xD24;
+        private static readonly IntPtr ContinueCountPtr = new IntPtr(0x948340);
+        private const int ContinueCountOffset = 0x132;
         private const int GameTimerOffset = 0x10;
         private static int CurrentGameTime;
         private static CancellationTokenSource tokenSource = new CancellationTokenSource();
@@ -88,11 +91,24 @@ namespace MetalGearHardcore
                 {
                     using (SimpleProcessProxy proxy = new SimpleProcessProxy(mgs2Process))
                     {
-                        IntPtr currentStageLocation = proxy.FollowPointer(CurrentStagePtr, false);
-                        currentStageLocation = IntPtr.Add(currentStageLocation, CurrentStageOffset);
-                        return proxy.GetMemoryFromPointer(currentStageLocation, 4);
+                        return GetCurrentStage(proxy);
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Failed to get current stage");
+                return null;
+            }
+        }
+
+        private static byte[] GetCurrentStage(SimpleProcessProxy proxy)
+        {
+            try
+            {
+                IntPtr currentStageLocation = proxy.FollowPointer(CurrentStagePtr, false);
+                currentStageLocation = IntPtr.Add(currentStageLocation, CurrentStageOffset);
+                return proxy.GetMemoryFromPointer(currentStageLocation, 4);
             }
             catch (Exception e)
             {
@@ -153,6 +169,14 @@ namespace MetalGearHardcore
             }
             return filePath;
         }
+
+        private static short GetContinueCount(SimpleProcessProxy spp)
+        {
+            IntPtr continuesLocation = spp.FollowPointer(ContinueCountPtr, false);
+            continuesLocation = IntPtr.Add(continuesLocation, ContinueCountOffset);
+            byte[] currentContinues = spp.GetMemoryFromPointer(continuesLocation, 2);
+            return BitConverter.ToInt16(currentContinues, 0);
+        }
         #endregion
 
         public static void Main_Thread()
@@ -193,12 +217,12 @@ namespace MetalGearHardcore
             Console.WriteLine($"Current character found: {character}");
             //Task gameTimerTask = Task.Factory.StartNew(MonitorGameTimer);
 
-            if (gameOptions.BleedingKills)
-                BleedingKills();
-            if (gameOptions.PermanentDamage)
-                PermanentDamage(tokenSource.Token);
-            if (!gameOptions.Permadeath)
-                DisablePermadeath();
+            Permadeath = gameOptions.Permadeath;
+            Permadamage = gameOptions.PermanentDamage;
+            DeathByBleeding = gameOptions.BleedingKills;
+
+            if (Permadamage || Permadeath || DeathByBleeding)
+                MonitorHP(tokenSource.Token);
             if (gameOptions.ExtendGuardStatuses)
                 ExtendGuardStatuses(tokenSource.Token);
             if (gameOptions.DisablePausing)
@@ -212,53 +236,10 @@ namespace MetalGearHardcore
             tokenSource.Cancel();
         }
 
-        private static void MonitorGameTimer()
+        #region Permanent Damage/Permanent Death/Death by Bleeding
+        private static void MonitorHP(CancellationToken token)
         {
-            while (true)
-            {
-                string currentStage = Encoding.UTF8.GetString(GetCurrentStage());
-                lock (mgs2Process)
-                {
-                    using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs2Process))
-                    {
-                        if (currentStage.StartsWith("w"))
-                        {
-                            IntPtr currentStageLocation = spp.FollowPointer(CurrentStagePtr, false);
-                            currentStageLocation = IntPtr.Add(currentStageLocation, CurrentStageOffset);
-                            long cslLong = currentStageLocation.ToInt64();
-                            CurrentGameTime = BitConverter.ToInt32(spp.GetMemoryFromPointer(new IntPtr(cslLong + GameTimerOffset), 4), 0);
-                        }
-                    }
-                }
-                Thread.Sleep(1000);
-            }
-        }
-
-        #region Bleeding Kills
-        private static void BleedingKills()
-        {
-            //As a workaround...
-            Console.WriteLine("Allowing bleeding to kill");
-            DeathByBleeding = true;
-            /*
-            //i've found where the bleeding damage is determined, but i haven't figure out yet how to FORCE it to kill...
-            //turning the je to jmp _somehow_ does not result in the damage actually being dealt.
-            try
-            {
-                throw new NotImplementedException();
-            }
-            catch
-            {
-
-            }
-            */
-        }
-        #endregion
-
-        #region Permanent Damage
-        private static void PermanentDamage(CancellationToken token)
-        {
-            Console.WriteLine("Making damage permanent...");
+            //Console.WriteLine("Making damage permanent...");
             //monitor current HP
             Task.Factory.StartNew(MonitorCurrentHealth, token);
         }
@@ -302,6 +283,7 @@ namespace MetalGearHardcore
                             if (DeathByBleeding)
                             {
                                 //this is a workaround for now
+                                //TODO: is there a boolean that we can find that controls bleeding?
                                 if (currentHealthInt == 1)
                                 {
                                     //wait 5 seconds, then kill the shit out of the player.
@@ -309,25 +291,41 @@ namespace MetalGearHardcore
                                     proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(0));
                                 }
                             }
-                            if (!Permadeath)
+                            if (Permadeath)
                             {
-                                SnakeHealth = 200;
-                                RaidenHealth = 200;
+                                if (GetContinueCount(proxy) > 0)
+                                {
+                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(0));
+                                }
                             }
+
                             if (currentCharacter == SupportedCharacter.Snake)
                             {
+                                if(SnakeHealth == 0)
+                                {
+                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(0));
+                                    continue;
+                                }
                                 if (currentHealthInt <= SnakeHealth)
                                 {
                                     SnakeHealth = currentHealthInt;
                                 }
                                 else
                                 {
-                                    //if HP goes up, reset back down to last known value
-                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(SnakeHealth));
+                                    if (Permadamage)
+                                    {
+                                        //if HP goes up, reset back down to last known value
+                                        proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(SnakeHealth));
+                                    }
                                 }
                             }
                             else
                             {
+                                if (RaidenHealth == 0)
+                                {
+                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(0));
+                                    continue;
+                                }
                                 if (currentHealthInt <= RaidenHealth)
                                 {
                                     RaidenHealth = currentHealthInt;
@@ -335,7 +333,10 @@ namespace MetalGearHardcore
                                 else
                                 {
                                     //if HP goes up, reset back down to last known value
-                                    proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(RaidenHealth));
+                                    if (Permadamage)
+                                    {
+                                        proxy.SetMemoryAtPointer(IntPtr.Add(healthLocation, CurrentHealthOffset), BitConverter.GetBytes(RaidenHealth));
+                                    }
                                 }
                             }
                         }
@@ -355,17 +356,6 @@ namespace MetalGearHardcore
             }
             
         }
-        #endregion
-
-        #region Disable Permadeath
-        private static void DisablePermadeath()
-        {
-            //TODO: take this out of the Permadamage loop - this means if permadamage is off, this doesnt work. silly oversight.
-            //Maybe we make this dependent on continue count, instead? hmmj
-            Console.WriteLine("Disabling permadeath");
-            Permadeath = false;
-        }
-
         #endregion
 
         #region Extend Guard Statuses(buggy)
