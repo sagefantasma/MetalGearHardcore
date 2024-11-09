@@ -12,7 +12,7 @@ namespace MetalGearHardcore
 {
     public static class MGS3IniHandler
     {
-        public static string IniFile = "MGS2HardcoreConfig.ini";
+        public static string IniFile = "MGS3HardcoreConfig.ini";
 
         public static MGS3GameOptions ParseIniFile()
         {
