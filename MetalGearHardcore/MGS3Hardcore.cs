@@ -211,7 +211,7 @@ namespace MetalGearHardcore
             Permadamage = gameOptions.PermanentDamage;
             Permadeath = gameOptions.Permadeath;
             DoubleDamage = gameOptions.DoubleDamage;
-            if(Permadamage || Permadeath)
+            if(Permadamage || Permadeath || DoubleDamage)
                 MonitorPlayerHealth(tokenSource.Token);
             if (gameOptions.ExtendGuardStatuses)
                 ExtendGuardStatuses(tokenSource.Token);
@@ -289,7 +289,7 @@ namespace MetalGearHardcore
                                         SnakeHealth = checkpointHealth;
                                         continue;
                                     }
-                                    if (currentHealthInt <= SnakeHealth)
+                                    if (currentHealthInt < SnakeHealth)
                                     {
                                         if (DoubleDamage)
                                         {
@@ -298,11 +298,13 @@ namespace MetalGearHardcore
                                             if(healthAfterDoubleDamage > 0)
                                             {
                                                 SnakeHealth = (ushort) healthAfterDoubleDamage;
+                                                proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(SnakeHealth));
+                                                continue;
                                             }
-                                            else if(currentHealthInt > 0)
+                                            else if(currentHealthInt == 0)
                                             {
-                                                proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(0));
                                                 SnakeHealth = checkpointHealth;
+                                                continue;
                                             }
                                         }
                                         else
@@ -312,9 +314,21 @@ namespace MetalGearHardcore
                                     }
                                     else
                                     {
+                                        //if snake's health is already 0 in the game memory, he will die no matter what
+                                        //so to prevent accidental permadeath, set snake's health to checkpoint health
+                                        if (SnakeHealth == 0)
+                                        {
+                                            SnakeHealth = checkpointHealth;
+                                            continue;
+                                        }
                                         //if HP goes up, reset back down to last known value
                                         if (Permadamage)
-                                            proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(SnakeHealth));
+                                        {
+                                            if (SnakeHealth > 0 && currentHealthInt != SnakeHealth)
+                                            {
+                                                proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(SnakeHealth));
+                                            }
+                                        }
                                     }
                                 }
                             }
