@@ -244,7 +244,6 @@ namespace MetalGearHardcore
                         continue;
                     try
                     {
-                        //SupportedCharacter currentCharacter = GetCurrentChara();
                         lock (mgs3Process)
                         {
                             using (SimpleProcessProxy proxy = new SimpleProcessProxy(mgs3Process))
@@ -270,8 +269,7 @@ namespace MetalGearHardcore
                                 {
                                     if (currentContinuesParsed > LastKnownContinueCount)
                                     {
-                                        SnakeHealth = 0;
-                                        proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(0));
+                                        proxy.SetMemoryAtPointer(healthLocation, BitConverter.GetBytes(-1));
                                         continue;
                                     }
                                     else
