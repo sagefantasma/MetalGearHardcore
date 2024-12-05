@@ -14,52 +14,53 @@ namespace MetalGearHardcore
     {
         #region Internals
         static Process mgs3Process;
-        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00ACBE18);
+        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00ACBE18); //correct
         private const int CurrentStageOffset = 0x24;
-        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00ACBE18); 
+        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00ACBE18); //correct
         private const int CurrentCharacterOffset = 0x14;
         private static ushort SnakeHealth = 1000;
-        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x00ACBE18); 
+        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x00ACBE18); //correct
         private const int CurrentHealthOffset = 0x684;
-        private static readonly IntPtr MaxHpPtr = new IntPtr(0x00ACBE18);
+        private static readonly IntPtr MaxHpPtr = new IntPtr(0x00ACBE18); //correct
         private const int MaxHpOffset = 0x686;
-        private static readonly IntPtr CheckpointHealthPtr = new IntPtr(0x00ACBE20);
+        private static readonly IntPtr CheckpointHealthPtr = new IntPtr(0x00ACBE20); //correct
         private const int CheckpointHealthOffset = 0x684;
-        private static readonly SimplePattern QuickMenuPauseAoB = new SimplePattern("F7 D1 21 0D E4 94 C6 01 C3 CC CC CC CC CC CC CC");
-        private static byte[] DisableQuickMenuPauseBytes = new byte[] { 0x85, 0x05, 0x30, 0xF9, 0xA8, 0x01 };
+        private static readonly IntPtr WeaponPauseLocation = new IntPtr(0x32D311);
+        private static byte[] WeaponPauseBytes = new byte[] { 0xE8, 0x1A, 0x06, 0xDE, 0xFF };
+        private static readonly IntPtr ItemPauseLocation = new IntPtr(0x32C694);
+        private static byte[] ItemPauseBytes = new byte[] { 0xE8, 0x97, 0x12, 0xDE, 0xFF };
         private static readonly SimplePattern FilterPattern = new SimplePattern("00 00 A0 49 00 00 00 00 FF FF FF 7F");
-        private static readonly IntPtr QuickReloadLocation = new IntPtr(0x9AB9A);
+        private static readonly IntPtr QuickReloadLocation = new IntPtr(0x9AB3A); //66 89 4A 28
         private const int QuickReloadLength = 4;
-        private static readonly IntPtr XMovementCode = new IntPtr(0xB74E0);
+        private static readonly IntPtr XMovementCode = new IntPtr(0xB7450); //updated
         private static byte[] XMovementBytes = new byte[] { 0xF3, 0x0F, 0x11, 0x5F, 0x10 };
-        private static readonly IntPtr ZMovementCode = new IntPtr(0xB74F0);
+        private static readonly IntPtr ZMovementCode = new IntPtr(0xB7460); //updated
         private static byte[] ZMovementBytes = new byte[] { 0xF3, 0x0F, 0x11, 0x57, 0x18 };
-        private static readonly IntPtr YMovementCode = new IntPtr(0xB74EA);
+        private static readonly IntPtr YMovementCode = new IntPtr(0xB745A); //updated
         private static byte[] YMovementBytes = new byte[] { 0xF3, 0x44, 0x0F, 0x11, 0x47, 0x14 };
         private static bool Permadeath = true;
         private static bool Permadamage = true;
-        private static readonly IntPtr MaxAlertTimer1 = new IntPtr(0x01D772E8);
+        private static readonly IntPtr MaxAlertTimer1 = new IntPtr(0x01D772E8); //correct
         private const int MaxAlertTimerPtr2 = 0x58;
         private const int MaxAlertTimerOffset = 0x34;
-        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x01D772E8);
+        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x01D772E8); //correct
         private const int MaxEvasionTimerPtr2 = 0x58;
         private const int MaxEvasionTimerOffset = 0x4C;
-        private static readonly IntPtr MaxCautionTimerPtr1 = new IntPtr(0x01D772E8);
+        private static readonly IntPtr MaxCautionTimerPtr1 = new IntPtr(0x01D772E8); //correct
         private const int MaxCautionTimerPtr2 = 0x58;
         private const int MaxCautionTimerOffset = 0x38;
         private static bool PlayerIsFrozen;
-        private static readonly IntPtr ContinuesPtr = new IntPtr(0x00ACBE18);
+        private static readonly IntPtr ContinuesPtr = new IntPtr(0x00ACBE18); //correct
         private const int ContinuesOffset = 0x34;
         private static short LastKnownContinueCount = short.MaxValue;
-        private static readonly IntPtr DifficultyLevelPtr = new IntPtr(0x00ACBE18);
+        private static readonly IntPtr DifficultyLevelPtr = new IntPtr(0x00ACBE18); //correct
         private const int DifficultyOffset = 0x6;
         private static CancellationTokenSource tokenSource = new CancellationTokenSource();
-        private const string CompatibleGameVersion = "2.0.0.0";
+        private const string CompatibleGameVersion = "2.0.1.0";
         private static bool DisableAllModifiers = true;
         private static MGS3Stage.LocationString currentLocation;
         private static bool DoubleDamage = false;
         private static byte MenuStateByte = 1;
-        private static byte[] OriginalQuickMenuBytes;
 
         private static Process GetProcess()
         {
@@ -471,7 +472,7 @@ namespace MetalGearHardcore
                             {
                                 continue;
                             }
-                            if (17500 < currentAlertTimer && currentAlertTimer < 17750 && !recentlyForced)
+                            if (17000 < currentAlertTimer && currentAlertTimer < 18000 && !recentlyForced)
                             {
                                 spp.SetMemoryAtPointer(alertTimer, BitConverter.GetBytes(36000));
                                 recentlyForced = true;
@@ -485,6 +486,7 @@ namespace MetalGearHardcore
                 }
                 catch (Exception e)
                 {
+                    alertTimer = IntPtr.Zero;
                     Thread.Sleep(1000);
                     //Console.WriteLine($"Failed to force alert timer: {e}");
                 }
@@ -516,7 +518,7 @@ namespace MetalGearHardcore
                             int currentEvasionTimer = BitConverter.ToInt32(spp.GetMemoryFromPointer(evasionTimer, 4), 0);
                             if (currentEvasionTimer == 0)
                                 continue;
-                            if (17500 < currentEvasionTimer && currentEvasionTimer < 17750 && !recentlyForced)
+                            if (17000 < currentEvasionTimer && currentEvasionTimer < 18000 && !recentlyForced)
                             {
                                 spp.SetMemoryAtPointer(evasionTimer, BitConverter.GetBytes(36000));
                                 recentlyForced = true;
@@ -530,6 +532,7 @@ namespace MetalGearHardcore
                 }
                 catch (Exception e)
                 {
+                    evasionTimer = IntPtr.Zero;
                     Thread.Sleep(1000);
                     //Console.WriteLine($"Failed to force evasion timer: {e}");
                 }
@@ -561,7 +564,7 @@ namespace MetalGearHardcore
                             int currentCautionTimer = BitConverter.ToInt32(spp.GetMemoryFromPointer(cautionTimer, 4), 0);
                             if (currentCautionTimer == 0)
                                 continue;
-                            if (17500 < currentCautionTimer && currentCautionTimer < 17750 && !recentlyForced)
+                            if (17000 < currentCautionTimer && currentCautionTimer < 18000 && !recentlyForced)
                             {
                                 spp.SetMemoryAtPointer(cautionTimer, BitConverter.GetBytes(36000));
                                 recentlyForced = true;
@@ -575,6 +578,7 @@ namespace MetalGearHardcore
                 }
                 catch (Exception e)
                 {
+                    cautionTimer = IntPtr.Zero;
                     Thread.Sleep(1000);
                     //Console.WriteLine($"Failed to force caution timer: {e}");
                 }
@@ -587,17 +591,15 @@ namespace MetalGearHardcore
         private static void DisablePauses(CancellationToken token)
         {
             IntPtr menuWindowStateLocation = new IntPtr();
-            IntPtr quickMenuPauseAoBLocation = new IntPtr();
             try
             {
                 lock (mgs3Process)
                 {
                     using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs3Process))
                     {
-                        quickMenuPauseAoBLocation = spp.ScanMemoryForUniquePattern(QuickMenuPauseAoB);
-                        quickMenuPauseAoBLocation = IntPtr.Add(quickMenuPauseAoBLocation, 0x3FF);
+                        spp.ModifyProcessOffset(WeaponPauseLocation, NopArray(WeaponPauseBytes.Length));
+                        spp.ModifyProcessOffset(ItemPauseLocation, NopArray(ItemPauseBytes.Length));
                         IntPtr filterLocation = spp.ScanMemoryForPattern(FilterPattern).FirstOrDefault();
-                        //menuWindowStateLocation = IntPtr.Add(filterLocation, 0x215AC);
                         menuWindowStateLocation = IntPtr.Add(filterLocation, 0x22B6C);
                     }
                 }
@@ -608,36 +610,6 @@ namespace MetalGearHardcore
             }
 
             Task.Factory.StartNew(() => DisableMovementWhileInMenu(menuWindowStateLocation), token);
-            Task.Factory.StartNew(() => EnsureQuickMenuPauseStaysDisabled(quickMenuPauseAoBLocation), token);
-        }
-
-        private static void EnsureQuickMenuPauseStaysDisabled(IntPtr quickMenuPauseAoBLocation)
-        {
-            while (true)
-            {
-                if (DisableAllModifiers)
-                    continue;
-                lock (mgs3Process)
-                {
-                    using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs3Process))
-                    {
-                        byte[] currentMenuPauseBytes = spp.ReadProcessOffset(quickMenuPauseAoBLocation, 6);
-                        if (!DisableQuickMenuPauseBytes.SequenceEqual(currentMenuPauseBytes))
-                        {
-                            OriginalQuickMenuBytes = currentMenuPauseBytes;
-                        }
-                        if (MenuStateByte == 1)
-                        {
-                            spp.ModifyProcessOffset(quickMenuPauseAoBLocation, OriginalQuickMenuBytes, true);
-                        }
-                        else
-                        {
-                            spp.ModifyProcessOffset(quickMenuPauseAoBLocation, DisableQuickMenuPauseBytes, true);
-                        }
-                    }
-                }
-                Thread.Sleep(500); //changing to check twice a second now to try and avoid real menuing issues
-            }
         }
 
         private static void DisableMovementWhileInMenu(IntPtr menuWindowStateLocation)
