@@ -14,51 +14,48 @@ namespace MetalGearHardcore
     {
         #region Internals
         static Process mgs3Process;
-        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int CurrentStageOffset = 0x24;
-        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int CurrentCharacterOffset = 0x14;
         private static ushort SnakeHealth = 1000;
-        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int CurrentHealthOffset = 0x684;
-        private static readonly IntPtr MaxHpPtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr MaxHpPtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int MaxHpOffset = 0x686;
-        private static readonly IntPtr CheckpointHealthPtr = new IntPtr(0x00ACBE20); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr CheckpointHealthPtr = new IntPtr(0x00ACDEA0); //2.0.2 0x00ACBE20 -- updated for 3.0.0
         private const int CheckpointHealthOffset = 0x684;
-        private static readonly IntPtr WeaponPauseLocation = new IntPtr(0x32D321); //2.0.1 0x32D311
-        private static byte[] WeaponPauseBytes = new byte[] { 0xE8, 0x6A, 0x06, 0xDE, 0xFF }; //2.0.1 0xE8, 0x1A, 0x06, 0xDE, 0xFF 
-        private static readonly IntPtr ItemPauseLocation = new IntPtr(0x32C6A4); //2.0.1 0x32C694
-        private static byte[] ItemPauseBytes = new byte[] { 0xE8, 0xE7, 0x12, 0xDE, 0xFF }; //2.0.1 0xE8, 0x97, 0x12, 0xDE, 0xFF
-        private static readonly SimplePattern FilterPattern = new SimplePattern("00 00 A0 49 00 00 00 00 FF FF FF 7F");
-        private const int FilterOffset = 0x22B6C; //2.0.1 0x22B6C
-        private static readonly IntPtr MenuStateOverride = new IntPtr(0x1E1F9B9);
-        private static readonly IntPtr QuickReloadLocation = new IntPtr(0x9AB7A); //66 89 4A 28... 2.0.1 0x9AB3A
+        private static readonly IntPtr WeaponPauseLocation = new IntPtr(0x32E6C1); //2.0.1 0x32D311 ... 2.0.2 0x32D321 -- updated for 3.0.0
+        private static byte[] WeaponPauseBytes = new byte[] { 0xE8, 0x4A, 0x06, 0xDE, 0xFF }; //2.0.1 0xE8, 0x1A, 0x06, 0xDE, 0xFF ... 2.0.2 0xE8, 0x6A, 0x06, 0xDE, 0xFF -- updated for 3.0.0
+        private static readonly IntPtr ItemPauseLocation = new IntPtr(0x32DA44); //2.0.1 0x32C694 ... 2.0.2 0x32C6A4 -- updated for 3.0.0
+        private static byte[] ItemPauseBytes = new byte[] { 0xE8, 0xC7, 0x12, 0xDE, 0xFF }; //2.0.1 0xE8, 0x97, 0x12, 0xDE, 0xFF .. 2.0.2 0xE8, 0xE7, 0x12, 0xDE, 0xFF -- updated for 3.0.0
+        private static readonly IntPtr QuickReloadLocation = new IntPtr(0x9BD4A); //66 89 4A 28... 2.0.1 0x9AB3A ... 2.0.2 0x9AB7A -- updated for 3.0.0
         private const int QuickReloadLength = 4;
-        private static readonly IntPtr XMovementCode = new IntPtr(0xB74B0); //2.0.1 0xB7450
+        private static readonly IntPtr XMovementCode = new IntPtr(0xB8680); //2.0.1 0xB7450 -- 2.0.2 0xB74B0  -- updated for 3.0.0
         private static byte[] XMovementBytes = new byte[] { 0xF3, 0x0F, 0x11, 0x5F, 0x10 };
-        private static readonly IntPtr ZMovementCode = new IntPtr(0xB74C0); //2.0.1 0xB7460
+        private static readonly IntPtr ZMovementCode = new IntPtr(0xB8690); //2.0.1 0xB7460 -- 2.0.2 0xB74C0  -- updated for 3.0.0
         private static byte[] ZMovementBytes = new byte[] { 0xF3, 0x0F, 0x11, 0x57, 0x18 };
-        private static readonly IntPtr YMovementCode = new IntPtr(0xB74BA); //2.0.1 0xB745A
+        private static readonly IntPtr YMovementCode = new IntPtr(0xB868A); //2.0.1 0xB745A -- 2.0.2 0xB74BA  -- updated for 3.0.0
         private static byte[] YMovementBytes = new byte[] { 0xF3, 0x44, 0x0F, 0x11, 0x47, 0x14 };
         private static bool Permadeath = true;
         private static bool Permadamage = true;
-        private static readonly IntPtr MaxAlertTimer1 = new IntPtr(0x01D772E8); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr MaxAlertTimer1 = new IntPtr(0x1D793B8); //2.0.2 0x01D772E8 -- updated for 3.0.0
         private const int MaxAlertTimerPtr2 = 0x58;
         private const int MaxAlertTimerOffset = 0x34;
-        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x01D772E8); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x1D793B8); //2.0.2 0x01D772E8 -- updated for 3.0.0
         private const int MaxEvasionTimerPtr2 = 0x58;
         private const int MaxEvasionTimerOffset = 0x4C;
-        private static readonly IntPtr MaxCautionTimerPtr1 = new IntPtr(0x01D772E8); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr MaxCautionTimerPtr1 = new IntPtr(0x1D793B8); //2.0.2 0x01D772E8 -- updated for 3.0.0
         private const int MaxCautionTimerPtr2 = 0x58;
         private const int MaxCautionTimerOffset = 0x38;
         private static bool PlayerIsFrozen;
-        private static readonly IntPtr ContinuesPtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr ContinuesPtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int ContinuesOffset = 0x34;
         private static short LastKnownContinueCount = short.MaxValue;
-        private static readonly IntPtr DifficultyLevelPtr = new IntPtr(0x00ACBE18); //correct -- unchanged in 2.0.2.0
+        private static readonly IntPtr DifficultyLevelPtr = new IntPtr(0x00ACDE98); //2.0.2 0x00ACBE18 -- updated for 3.0.0
         private const int DifficultyOffset = 0x6;
         private static CancellationTokenSource tokenSource = new CancellationTokenSource();
-        private const string CompatibleGameVersion = "2.0.2.0";
+        private const string CompatibleGameVersion = "3.0.0.0";
         private static bool DisableAllModifiers = true;
         private static MGS3Stage.LocationString currentLocation;
         private static bool DoubleDamage = false;
@@ -592,7 +589,6 @@ namespace MetalGearHardcore
         #region Disable Pausing
         private static void DisablePauses(CancellationToken token)
         {
-            IntPtr menuWindowStateLocation = new IntPtr();
             try
             {
                 lock (mgs3Process)
@@ -601,8 +597,6 @@ namespace MetalGearHardcore
                     {
                         spp.ModifyProcessOffset(WeaponPauseLocation, NopArray(WeaponPauseBytes.Length));
                         spp.ModifyProcessOffset(ItemPauseLocation, NopArray(ItemPauseBytes.Length));
-                        IntPtr filterLocation = spp.ScanMemoryForPattern(FilterPattern).FirstOrDefault();
-                        menuWindowStateLocation = IntPtr.Add(filterLocation, FilterOffset);
                     }
                 }
             }
@@ -611,10 +605,10 @@ namespace MetalGearHardcore
                 Console.WriteLine($"Something went wrong with disabling pausing: {e}");
             }
 
-            Task.Factory.StartNew(() => DisableMovementWhileInMenu(menuWindowStateLocation), token);
+            Task.Factory.StartNew(DisableMovementWhileInMenu, token);
         }
 
-        private static void DisableMovementWhileInMenu(IntPtr menuWindowStateLocation)
+        private static void DisableMovementWhileInMenu()
         {
             while (true)
             {
@@ -627,15 +621,7 @@ namespace MetalGearHardcore
                     {
                         using (SimpleProcessProxy spp = new SimpleProcessProxy(mgs3Process))
                         {
-                            /*if(menuWindowStateLocation == IntPtr.Zero || DateTime.Now.Millisecond == 0)
-                            {
-                                IntPtr filterLocation = spp.ScanMemoryForPattern(FilterPattern).FirstOrDefault();
-                                menuWindowStateLocation = IntPtr.Add(filterLocation, FilterOffset);
-                            }
-                            MenuStateByte = spp.ReadProcessOffset(menuWindowStateLocation, 1)[0];*/
-                            //2.0.2.0 seems to have completely screwed the old functionality we relied on for this. sonuva
-                            MenuStateByte = spp.ReadProcessOffset(MenuStateOverride, 1)[0]; //2.0.2.0 seems to have broken the old logic, even though everything is valid in CE.
-                                                                                            //using override because it seems consistent enough?
+                            MenuStateByte = spp.GetMemoryFromPointer(IntPtr.Add(spp.FollowPointer(new IntPtr(0x1E16CE0), false), 0x539), 1)[0];
 
                             switch (MenuStateByte)
                             {

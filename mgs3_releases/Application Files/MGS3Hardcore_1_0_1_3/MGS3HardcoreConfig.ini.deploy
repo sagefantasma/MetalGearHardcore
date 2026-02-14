@@ -1,0 +1,8 @@
+﻿[Global]
+GameLocation = "C:\Program Files (x86)\Steam\steamapps\common\MGS3\METAL GEAR SOLID3.exe"
+DoubleDamage = True
+Permadeath = False
+DisablePausing = True
+DisableQuickReload = True
+ExtendGuardStatuses = True
+PermanentDamage = True

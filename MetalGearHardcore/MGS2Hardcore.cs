@@ -15,30 +15,31 @@ namespace MetalGearHardcore
     {
         #region Internals
         static Process mgs2Process;
-        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00948340); //2.0.1 0x00949340
+        private static readonly IntPtr CurrentStagePtr = new IntPtr(0x00949340); //2.0.1 0x00949340 -- updated for 2.1.0
         private const int CurrentStageOffset = 0x2C;
-        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00948340); //2.0.1 0x00949340
+        private static readonly IntPtr CurrentCharacterPtr = new IntPtr(0x00949340); //2.0.1 0x00949340 -- updated for 2.1.0
         private const int CurrentCharacterOffset = 0x1C;
         private static int SnakeHealth = 200;
         private static int RaidenHealth = 200;
-        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x017DE780); //2.0.1 0x017DF780
+        private static readonly IntPtr CurrentHealthPtr = new IntPtr(0x017DF780); //2.0.1 0x017DF780 -- updated for 2.1.0
         private const int CurrentHealthOffset = 0x8D2;
-        private static readonly IntPtr CurrentAmmoPtr = new IntPtr(0x0153FC10); //2.0.1 0x01540C20
+        private static readonly IntPtr CurrentAmmoPtr = new IntPtr(0x01540C20); //2.0.1 0x01540C20 -- updated for 2.1.0
         private const int CurrentAmmoOffset = 0x0;
-        private static readonly IntPtr CurrentWeaponPtr = new IntPtr(0x00948340); //2.0.1 0x00949340
+        private static readonly IntPtr CurrentWeaponPtr = new IntPtr(0x00949340); //2.0.1 0x00949340 -- updated for 2.1.0
         private const int CurrentWeaponOffset = 0x104;
-        private const int CurrentMagazineHardcode = 0x16E894C; //2.0.1 0x16E994C
-        private static readonly IntPtr PauseButtonLocation = new IntPtr(0x6A28E); //2.0.1 0x6A1DE
+        private const int CurrentMagazineHardcode = 0x16E994C; //2.0.1 0x16E994C -- 2.0.2 0x16E894C -- updated for 2.1.0
+        private static readonly IntPtr PauseButtonLocation = new IntPtr(0x6A41E); //2.0.1 0x6A1DE -- 2.0.2 0x6A28E -- updated for 2.1.0
         private const int PauseButtonLength = 5;
-        private static readonly IntPtr ItemPauseLocation = new IntPtr(0x1EF199); //2.0.1 0x1EF099
+        private static readonly IntPtr ItemPauseLocation = new IntPtr(0x1EF259); //2.0.1 0x1EF099 -- 2.0.2 0x1EF199 -- updated for 2.1.0
         private const int ItemPauseLength = 6;
-        private static readonly IntPtr WeaponPauseLocation = new IntPtr(0x1F0C97); //2.0.1 0x1F0B97
+        private static readonly IntPtr WeaponPauseLocation = new IntPtr(0x1F0D57); //2.0.1 0x1F0B97 -- 2.0.2 0x1F0C97 -- updated for 2.1.0
         private const int WeaponPauseLength = 6;
-        private static readonly IntPtr ReloadMagLocation = new IntPtr(0x551462); //2.0.1 0x551212
+        private static readonly IntPtr ReloadMagLocation = new IntPtr(0x551462); //2.0.1 0x551212 -- 0x551462 for 2.0.2 -- might be good for 2.1.0?
         private const int ReloadMagLength = 7;
         //private static readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0xC3, 0x78, 0x19, 0x01 }; //2.0.0 value
         //private static readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0x33, 0x87, 0x19, 0x01 }; //2.0.1 value
-        private static readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0xE3, 0x74, 0x19, 0x01 }; //2.0.2 value
+        //private static readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0xE3, 0x74, 0x19, 0x01 }; //2.0.2 value
+        private static readonly byte[] ReloadMagBytes = new byte[] { 0x44, 0x89, 0x05, 0xE3, 0x84, 0x19, 0x01 }; //2.1.0 value
         private static bool ReloadDisabled = false;
         private static readonly List<int> WeaponsWithMags = new List<int> { 1, 2, 3, 4, 5, 15, 18, 19 };
         private static Dictionary<int, int> WeaponsWithMagsDict = new Dictionary<int, int>();
@@ -46,14 +47,14 @@ namespace MetalGearHardcore
         private static bool Permadamage = true;
         private static bool DeathByBleeding = false;
         //done up to here
-        private static readonly IntPtr MaxAlertTimer = new IntPtr(0x016C8E10); //2.0.1 0x016C9E10
+        private static readonly IntPtr MaxAlertTimer = new IntPtr(0x016C9E10); //2.0.1 0x016C9E10 -- 2.0.2 0x016C8E10 -- updated for 2.1.0
         private const int MaxAlertTimerOffset = 0x33C;
-        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x153F9D0); //2.0.1 0x15409E0
+        private static readonly IntPtr MaxEvasionTimerPtr1 = new IntPtr(0x15409E0); //2.0.1 0x15409E0 -- 2.0.2 0x153F9D0 -- updated for 2.1.0
         private const int MaxEvasionTimerPtr2 = 0x20;
         private const int MaxEvasionTimerOffset = 0x54;
-        private static readonly IntPtr MaxCautionTimer = new IntPtr(0x17B2CC0); //2.0.1 0x17B3CC0
+        private static readonly IntPtr MaxCautionTimer = new IntPtr(0x17B3CC0); //2.0.1 0x17B3CC0 -- 2.0.2 0x17B2CC0 -- updated for 2.1.0
         private const int MaxCautionTimerOffset = 0xD24;
-        private static readonly IntPtr ContinueCountPtr = new IntPtr(0x948340); //2.0.1 0x949340
+        private static readonly IntPtr ContinueCountPtr = new IntPtr(0x949340); //2.0.1 0x949340 -- updated for 2.1.0
         private const int ContinueCountOffset = 0x132;
         private const int GameTimerOffset = 0x10;
         private static int CurrentGameTime;
@@ -67,7 +68,7 @@ namespace MetalGearHardcore
         //called along the way while setting this hardcode IGNORES the parameter passed to it and sets the 
         //value to 3600 within that function itself. I think a literal potato coded this part.
         //and just setting the max timer like this is seemingly causing the game to crash. cool.
-        private const string CompatibleGameVersion = "2.0.2.0";
+        private const string CompatibleGameVersion = "2.1.0.0";
 
 
         const int DLL_PROCESS_ATTACH = 0;
